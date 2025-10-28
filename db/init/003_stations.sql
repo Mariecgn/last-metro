@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS stations (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  line TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
