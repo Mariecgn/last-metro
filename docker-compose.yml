@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lm-postgres
+    environment:
+      POSTGRES_DB: dernier_metro
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      TZ: Europe/Paris
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d dernier_metro"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./api
+    container_name: lm-api
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dernier_metro
+      DB_USER: app
+      DB_PASSWORD: app
+      TZ: Europe/Paris
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  swagger:
+    image: swaggerapi/swagger-ui
+    container_name: lm-swagger
+    environment:
+      SWAGGER_JSON: /openapi/openapi.yaml
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./api/openapi.yaml:/openapi/openapi.yaml:ro
+
+volumes:
+  pgdata:
